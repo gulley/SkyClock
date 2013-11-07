@@ -5,29 +5,21 @@ var SC = SC || {};
 SC.SkyClock = {
   
   startUp : function() {
-    var url = "http://www.astro-phys.com/api/api/de406/states?date=1000-1-20&bodies=mars";
-    $.getJSON( url, args, SC.SkyClock.getData );
+  	// See http://davywybiral.blogspot.com/2011/11/planetary-states-api.html
+  	var url = 'http://www.astro-phys.com/api/states?callback=?';
+	$.getJSON(url, {bodies: 'mercury'}, function(data) {
+  		var pMercury = data.results.mercury[0];
+		SC.SkyClock.showSky(pMercury);
+	});
   },
 
-  getData : function(data) {
-    var items = [];
-    $.each( data, function( key, val ) {
-      items.push( "<li id='" + key + "'>" + val + "</li>" );
-    });
-   
-    $( "<ul/>", {
-      "class": "my-new-list",
-      html: items.join( "" )
-    }).appendTo( "body" );
-
-    SC.SkyClock.showSky();
-  },
-
-  showSky : function() {
+  showSky : function(pMercury) {
     var td = new Date();
 
     $(".time").html(
-      "Today is " + td.toDateString()
+      "Today is " + td.toDateString() + "<br/>"
+      + "Mercury can be found at " + pMercury[0] + " " + pMercury[1] + " " + pMercury[2] + "<br/>"
     );
+
   }
 }

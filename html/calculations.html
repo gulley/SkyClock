@@ -1,0 +1,208 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>calculations</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-11-08"><meta name="DC.source" content="calculations.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#3">Subtract the location of earth</a></li></ul></div><pre class="codeinput"><span class="comment">% Sky Clock calculations</span>
+<span class="comment">% FIXME: this hasn't been debugged yet. Trying to get the sign right on</span>
+<span class="comment">% theta.</span>
+</pre><p>Positions of [sun mercury venus earth moon mars]</p><pre class="codeinput">p = [ <span class="keyword">...</span>
+    98737.65714089875 -322333.36244940694 -153695.74901326824
+    6941996.601020642 40110318.72735843 20735265.058509897
+    107376698.98967445 16606844.809812635 674753.2904573642
+    102641024.09369242 97848513.33584224 42404420.99743636
+    102797481.67090186 97531216.1543806 42302953.91258208
+    -164532329.9741314 165301295.37539384 80258023.65923128];
+n = {<span class="string">' sun'</span>,<span class="string">' mercury'</span>,<span class="string">' venus'</span>,<span class="string">' earth'</span>,<span class="string">' moon'</span>,<span class="string">' mars'</span>};
+
+<span class="keyword">for</span> i = 1:size(p,1)
+    plot3(p(i,1),p(i,2),p(i,3),<span class="string">'r.'</span>);
+    text(p(i,1),p(i,2),p(i,3),n{i});
+    hold <span class="string">on</span>
+<span class="keyword">end</span>
+hold <span class="string">off</span>
+
+pe = p(4,:);
+p = p([1 2 3 5 6],:);
+pe = pe([1 1 1 1 1],:);
+</pre><img vspace="5" hspace="5" src="calculations_01.png" alt=""> <h2>Subtract the location of earth<a name="3"></a></h2><pre class="codeinput">p = p - pe;
+
+<span class="comment">% p is now a geocentric view of the inner planets</span>
+plot3(p(:,1),p(:,2),p(:,3),<span class="string">'.'</span>);
+</pre><img vspace="5" hspace="5" src="calculations_02.png" alt=""> <pre class="codeinput">psun = p(1,:);
+cosTheta = zeros(size(p,1),1);
+theta = zeros(size(p,1),1);
+<span class="keyword">for</span> i = 2:size(p,1)
+    plot3([psun(1) 0 p(i,1)],[psun(2) 0 p(i,2)],[psun(3) 0 p(i,3)])
+    hold <span class="string">on</span>
+    cosTheta(i) = dot(psun,p(i,:))/(sqrt(dot(psun,psun))*sqrt(dot(p(i,:),p(i,:))));
+    theta(i) = acos(cosTheta(i));
+<span class="keyword">end</span>
+hold <span class="string">off</span>
+
+<span class="comment">% In degrees...</span>
+theta*180/pi
+</pre><pre class="codeoutput">
+ans =
+
+         0
+   13.5400
+   46.8712
+   69.1380
+   62.2965
+
+</pre><img vspace="5" hspace="5" src="calculations_03.png" alt=""> <pre class="codeinput">i = 1; body = <span class="string">'sun'</span>;
+plot([0 cos(theta(i))],[0 sin(theta(i))]);
+text(cos(theta(i)),sin(theta(i)),body);
+hold <span class="string">on</span>
+i = 2; body = <span class="string">'mercury'</span>;
+plot([0 cos(theta(i))],[0 sin(theta(i))]);
+text(cos(theta(i)),sin(theta(i)),body);
+i = 3; body = <span class="string">'venus'</span>;
+plot([0 cos(theta(i))],[0 sin(theta(i))]);
+text(cos(theta(i)),sin(theta(i)),body);
+i = 4; body = <span class="string">'moon'</span>;
+plot([0 cos(theta(i))],[0 sin(theta(i))]);
+text(cos(theta(i)),sin(theta(i)),body);
+i = 5; body = <span class="string">'mars'</span>;
+plot([0 cos(theta(i))],[0 sin(theta(i))]);
+text(cos(theta(i)),sin(theta(i)),body);
+
+hold <span class="string">off</span>
+axis <span class="string">equal</span>
+</pre><img vspace="5" hspace="5" src="calculations_04.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% Sky Clock calculations
+% FIXME: this hasn't been debugged yet. Trying to get the sign right on
+% theta.
+
+%%
+% Positions of [sun mercury venus earth moon mars]
+
+p = [ ...
+    98737.65714089875 -322333.36244940694 -153695.74901326824
+    6941996.601020642 40110318.72735843 20735265.058509897
+    107376698.98967445 16606844.809812635 674753.2904573642
+    102641024.09369242 97848513.33584224 42404420.99743636
+    102797481.67090186 97531216.1543806 42302953.91258208
+    -164532329.9741314 165301295.37539384 80258023.65923128];
+n = {' sun',' mercury',' venus',' earth',' moon',' mars'};
+
+for i = 1:size(p,1)
+    plot3(p(i,1),p(i,2),p(i,3),'r.');
+    text(p(i,1),p(i,2),p(i,3),n{i});
+    hold on
+end
+hold off
+
+pe = p(4,:);
+p = p([1 2 3 5 6],:);
+pe = pe([1 1 1 1 1],:);
+
+%% Subtract the location of earth
+p = p - pe;
+
+% p is now a geocentric view of the inner planets
+plot3(p(:,1),p(:,2),p(:,3),'.');
+
+%%
+psun = p(1,:);
+cosTheta = zeros(size(p,1),1);
+theta = zeros(size(p,1),1);
+for i = 2:size(p,1)
+    plot3([psun(1) 0 p(i,1)],[psun(2) 0 p(i,2)],[psun(3) 0 p(i,3)])
+    hold on
+    cosTheta(i) = dot(psun,p(i,:))/(sqrt(dot(psun,psun))*sqrt(dot(p(i,:),p(i,:))));
+    theta(i) = acos(cosTheta(i));
+end
+hold off
+
+% In degrees...
+theta*180/pi
+
+%%
+
+i = 1; body = 'sun';
+plot([0 cos(theta(i))],[0 sin(theta(i))]);
+text(cos(theta(i)),sin(theta(i)),body);
+hold on
+i = 2; body = 'mercury';
+plot([0 cos(theta(i))],[0 sin(theta(i))]);
+text(cos(theta(i)),sin(theta(i)),body);
+i = 3; body = 'venus';
+plot([0 cos(theta(i))],[0 sin(theta(i))]);
+text(cos(theta(i)),sin(theta(i)),body);
+i = 4; body = 'moon';
+plot([0 cos(theta(i))],[0 sin(theta(i))]);
+text(cos(theta(i)),sin(theta(i)),body);
+i = 5; body = 'mars';
+plot([0 cos(theta(i))],[0 sin(theta(i))]);
+text(cos(theta(i)),sin(theta(i)),body);
+
+hold off
+axis equal
+##### SOURCE END #####
+--></body></html>

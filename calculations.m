@@ -1,6 +1,6 @@
 % Sky Clock calculations
-% FIXME: this hasn't been debugged yet. Trying to get the sign right on
-% theta.
+% As an input we get the positions of the planets
+% Desired outputs is the projections onto the earth-sun-moon plane
 
 %%
 % Positions of [sun mercury venus earth moon mars]
@@ -12,58 +12,68 @@ p = [ ...
     102641024.09369242 97848513.33584224 42404420.99743636
     102797481.67090186 97531216.1543806 42302953.91258208
     -164532329.9741314 165301295.37539384 80258023.65923128];
-n = {' sun',' mercury',' venus',' earth',' moon',' mars'};
+nm = {'sun','mercury','venus','earth','moon','mars'};
 
+planet = [];
+% First assign the positions
 for i = 1:size(p,1)
-    plot3(p(i,1),p(i,2),p(i,3),'r.');
-    text(p(i,1),p(i,2),p(i,3),n{i});
+    pi = p(i,:);
+    planet(i).p = pi;
+    planet(i).nm = nm{i}
+
+    plot3(pi(1),pi(2),pi(3),'r.');
+    text(pi(1),pi(2),pi(3),[' ' planet(i).nm]);
     hold on
 end
 hold off
 
-pe = p(4,:);
-p = p([1 2 3 5 6],:);
-pe = pe([1 1 1 1 1],:);
 
-%% Subtract the location of earth
-p = p - pe;
+%% 
+% Now calculate the geocentric position vectors of each planet
 
-% p is now a geocentric view of the inner planets
-plot3(p(:,1),p(:,2),p(:,3),'.');
+pearth = planet(4).p;
+for i = 1:length(planet)
+    pe = planet(i).p - pearth;
+    % pen = normalized position relative to earth
+    % (i.e. a unit vector pointing from earth to body X
+    pen = pe/sqrt(dot(pe,pe));
+    planet(i).pen = pen;       
+    
+    plot3([0 pen(1)],[0 pen(2)],[0 pen(3)],'r.-');
+    text(pen(1),pen(2),pen(3),[' ' planet(i).nm]);
+    hold on
+end
+% hold off
 
 %%
-psun = p(1,:);
-cosTheta = zeros(size(p,1),1);
-theta = zeros(size(p,1),1);
-for i = 2:size(p,1)
-    plot3([psun(1) 0 p(i,1)],[psun(2) 0 p(i,2)],[psun(3) 0 p(i,3)])
+% psun is the unit vector that points from earth to sun
+% pmoon is the unit vector that points from earth to moon
+
+psun = planet(1).pen;
+pmoon = planet(5).pen;
+b = cross(psun,pmoon);
+
+%%
+% Now we project the vectors onto the plane defined by earth-moon-sun
+% See http://en.wikipedia.org/wiki/Vector_projection
+
+for i = 1:length(planet)
+    pen = planet(i).pen;
+    pen2 = pen - dot(pen,b)/dot(b,b)*b;
+    planet(i).pen2 = pen2;
+    
+    plot3([0 pen2(1)],[0 pen2(2)],[0 pen2(3)],'b.-');
+    text(pen2(1),pen2(2),pen2(3),[' ' planet(i).nm]);
     hold on
-    cosTheta(i) = dot(psun,p(i,:))/(sqrt(dot(psun,psun))*sqrt(dot(p(i,:),p(i,:))));
-    theta(i) = acos(cosTheta(i));
 end
 hold off
 
-% In degrees...
-theta*180/pi
-
 %%
+% cos(theta) = dot(u,v)/(sqrt(dot(u,u))*sqrt(sqrt(dot(v,v))))
 
-i = 1; body = 'sun';
-plot([0 cos(theta(i))],[0 sin(theta(i))]);
-text(cos(theta(i)),sin(theta(i)),body);
-hold on
-i = 2; body = 'mercury';
-plot([0 cos(theta(i))],[0 sin(theta(i))]);
-text(cos(theta(i)),sin(theta(i)),body);
-i = 3; body = 'venus';
-plot([0 cos(theta(i))],[0 sin(theta(i))]);
-text(cos(theta(i)),sin(theta(i)),body);
-i = 4; body = 'moon';
-plot([0 cos(theta(i))],[0 sin(theta(i))]);
-text(cos(theta(i)),sin(theta(i)),body);
-i = 5; body = 'mars';
-plot([0 cos(theta(i))],[0 sin(theta(i))]);
-text(cos(theta(i)),sin(theta(i)),body);
+x = cross(planet(1).pen2,planet(5).pen2)
+y = cross(planet(1).pen2,planet(3).pen2)
+x./y
 
-hold off
-axis equal
+% http://stackoverflow.com/questions/15101103/euler-angles-between-two-3d-vectors
+

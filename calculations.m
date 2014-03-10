@@ -2,33 +2,78 @@
 % As an input we get the positions of the planets
 % Desired outputs is the projections onto the earth-sun-moon plane
 
+% http://davywybiral.blogspot.com/2011/11/planetary-states-api.html
+
 %%
-% Positions of [sun mercury venus earth moon mars jupiter saturn]
+% Let's say we're interested in plotting the actual current state of the
+% solar system. To be specific, there are seven naked-eye heavenly bodies
+% in our neighborhood: sun, moon, mercury, venus, mars, saturn, Jupiter. I
+% want to plot them in their classic peas-on-a-plate configuration, as seen
+% from "above". Everything's relative in space, so when I say "above", I
+% mean looking down at the sun as the earth sweeps a counterclockwise
+% orbit.
+%
+% See http://www.starchamber.com/skyclock/explanation.html for more notes.
+%
+% So the problem is this: first get the data from the web. Then mash all
+% the planets into a plane. Then figure out the angles to planets sun and
+% moon when looking from earth. It's a nice little 3-D geometry problem,
+% and gives us an opportunity to explore MATLAB.
 
-p = [ ...
-    105466.57862061243 -320513.0525348927 -153075.22353957177
-    -28254617.546911404 33413899.08547402 20807485.255014483
-    101892433.53560476 35869153.31981312 9688685.825101694
-    87994759.91391698 108869760.5619592 47182570.1411031
-    88318269.65765092 109070078.26608586 47271779.78689272
-    -175033175.6172045 156838581.5712689 76659903.66643791
-    -147654424.0403505 696873333.1511024 302281137.98811287
-    -1054977146.3189284 -970294923.8394519 -355362682.91360706];
-nm = {'Sun','Mercury','Venus','Earth','Moon','Mars','Jupiter','Saturn'};
+%% Planetary Positions
+% First of all, where are the planets? There's a free JSON service for
+% everything these days, or so it seems. One that I've found for planetary
+% data is hosted here http://davywybiral.blogspot.com/2011/11/planetary-states-api.html
+% Davy Wybiral
 
-planet = [];
-% First assign the positions
-for i = 1:size(p,1)
-    p_i = p(i,:);
-    planet(i).p = p_i;
-    planet(i).nm = nm{i};
-    
-    plot3(p_i(1),p_i(2),p_i(3),'r.');
-    text(p_i(1),p_i(2),p_i(3),[' ' planet(i).nm]);
+url = 'http://www.astro-phys.com/api/de406/states?bodies=sun,moon,mercury,venus,earth,mars,jupiter,saturn';
+json = urlread(url);
+data = JSON.parse(json);
+
+%% Aerospace Toolbox Ephemeris
+% It turns out we can use the Aerospace Toolbox to get the same
+% information.
+
+% [pos,vel] = planetEphemeris(juliandate(now),'Sun','Earth')
+
+% TODO: Does this square with what my other source is telling me?
+
+%%
+
+% List of bodies we care about 
+bList = {'sun','moon','mercury','venus','earth','mars','jupiter','saturn'};
+
+% 1 Astronomical Unit = 149 597 871 kilometers
+au = 149597871;
+
+% We'll store our distances in AU.
+b = [];
+for i = 1:length(bList)
+    bName = bList{i};
+    b(i).name = bName;
+    bVec = data.results.(bName);
+    b(i).position = bVec(1:3)/au;
+    b(i).velocity = bVec(4:6);
+end
+
+%%
+% Make the sun stationary and at the center of the coordinate system.
+
+for i = 1:length(b)
+    b(i).position = b(i).position - b(1).position;
+    b(i).velocity = b(i).velocity - b(1).velocity;
+end
+
+
+%% Plot the planets
+
+for i = 1:length(b)-2
+    p = b(i).position;
+    plot3(p(1),p(2),p(3),'r.');
+    text(p(1),p(2),p(3),[' ' b(i).name]);
     hold on
 end
 hold off
-
 
 %%
 % Now calculate the geocentric position vectors of each planet

@@ -39,6 +39,16 @@ SC.SkyClock = {
 	 	  SC.SkyClock.showData(data.results);
 	  });
     */
+
+    // http://www.astro-phys.com/api/de406/states?bodies=sun,moon,mercury,venus,earth,mars,jupiter,saturn
+    var url = 'http://www.astro-phys.com/api/de406/states?bodies=sun,moon,mercury,venus,mars,jupiter,saturn';
+    jQuery.getJSON(url, function(data) {
+      var p = data.results.mercury[0];
+      var v = data.results.mercury[1];
+      alert('Position:\nx='+p[0]+'\ny='+p[1]+'\nz='+p[2]);
+      alert('Velocity:\nx='+v[0]+'\ny='+v[1]+'\nz='+v[2]);
+    });
+
   },
 
   showData : function(results) {

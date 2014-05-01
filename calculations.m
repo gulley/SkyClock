@@ -144,8 +144,8 @@ axis off
 % If we change our view point to look at the system edge-on, we can see the
 % objects are not quite co-planar. For simplicity, let's squash them all
 % into the same plane. For this, we'll use the plane defined by the earth's
-% position relative to the sun crossed with its velocity vector. This
-% defines "north" for the solar system.
+% velocity vector crossed with its position relative to the sun. This defines
+% "north" for the solar system.
 
 pEarth = ss(5).position;
 pSun = ss(1).position;

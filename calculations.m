@@ -14,9 +14,7 @@
 % Here is the basic grade-school illustration of the solar system, the one
 % that shows the planets rolling around the sun like peas on a plate. For
 % simplicity, we're just showing the sun, the earth, the moon, Venus, and
-% Mars. Viewed from above, it looks something like this.
-%
-% <<../explanation2.png>>
+% Mars. 
 %
 % But we never see anything like this with our own eyes. Instead, we see
 % bright spots on a dark background somewhere "up there." So let's simplify
@@ -30,10 +28,10 @@
 % and the naked-eye planets (Mercury, Venus, Mars, Jupiter, and Saturn)? To
 % do this, we need to solve a few problems.
 %
-% * Find the planets
-% * Find the unit vector pointing from earth to each planet
-% * Squash all these vectors onto a single plane
-% * Visualize the resulting disk
+% # Find the planets
+% # Find the unit vector pointing from earth to each planet
+% # Squash all these vectors onto a single plane
+% # Visualize the resulting disk
 
 %% Where Are the Planets?
 % First of all, where are the planets? There's a free JSON service for just
@@ -165,8 +163,8 @@ axis(a/2)
 set(gca,'Clipping','off')
 
 %%
-% Now we project the vectors onto the plane defined by earth-moon-sun. I
-% learned what I needed from Wikipedia here:
+% Now we project the vectors onto the plane defined by earth's motion
+% around the sun. I learned what I needed from Wikipedia here:
 % <http://en.wikipedia.org/wiki/Vector_projection Vector Projection>.
 %
 % Since we are working with the normal, we are technically doing a
@@ -244,6 +242,7 @@ axis(2*[-1 1 -1 1])
 % And there you have it: an accurate map of where the planets are in the
 % sky for today's date. In this orientation, planets "following" the sun
 % through the sky are on the left side of the circle. So Jupiter will be
-% high in the sky as the sun sets. And that is a very satisfying answer to
-% my question, by way of vector math, JSON feeds, MATLAB graphics, and the
-% the File Exchange.
+% high in the sky as the sun sets.
+%
+% And that is a very satisfying answer to my question, by way of vector
+% math, JSON feeds, MATLAB graphics, and the the File Exchange.

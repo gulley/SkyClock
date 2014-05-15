@@ -9,7 +9,7 @@
 % Exchange, MATLAB graphics, and 3-D vector mathematics cribbed from
 % Wikipedia.
 %
-% <<../explanation1.png>>
+% <<explanation1.png>>
 %
 % Here is the basic grade-school illustration of the solar system, the one
 % that shows the planets rolling around the sun like peas on a plate. For
@@ -21,7 +21,7 @@
 % our problem to determining what direction each naked-eye planet is in.
 % This leads to an image like this.
 %
-% <<../explanation3.png>>
+% <<explanation3.png>>
 %
 % Our goal is to make an accurate up-to-date version of this diagram.
 % Specifically, relative to the sun, where should we look to find the moon
@@ -47,7 +47,7 @@ json = urlread(url);
 % Now we can use
 % <http://www.mathworks.com/matlabcentral/fileexchange/42236-parse-json-text
 % Joe Hicklin's JSON parser> from the File Exchange. It returns a
-% well-bahaved MATLAB structure.
+% well-behaved MATLAB structure.
 
 data = JSON.parse(json)
 
@@ -78,32 +78,30 @@ ss = [];
 for i = 1:length(ssList)
     ssObjectName = ssList{i};
     ss(i).name = ssObjectName;
-    ssVec = data.results.(ssObjectName);
-    ss(i).position = ssVec(1:3);
-    ss(i).velocity = ssVec(4:6);
+    ssData = data.results.(ssObjectName);
+    ss(i).position = [ssData{1}{:}];
+    ss(i).velocity = [ssData{2}{:}];
 end
 
 %% Plot the planets
 
 % Plot in astronomical units
 au = 149597871;
-[x,y,z] = sphere;
 k = 5;
-
-cla
+ 
+clf
 for i = 1:length(ss)
     p = ss(i).position/au;
-    
-    surf(x/k+p(1),y/k+p(2),z/k+p(3))
-    
-    text(p(1),p(2),p(3),['   ' ss(i).name]);
-    hold on
-end
 
-hold off
+    line(p(1),p(2),p(3), ...
+        'Marker','.','MarkerSize',24)
+ 
+    text(p(1),p(2),p(3),['   ' ss(i).name]);
+end
+ 
+view(3)
+grid on
 axis equal
-shading flat
-light
 
 %%
 % This is accurate, but not yet very helpful. Let's now calculate the
@@ -122,19 +120,21 @@ for i = 1:length(ss)
     % (i.e. a vector pointing from earth to body X)
     pe = ss(i).position - pEarth;
     % pne = normalized position relative to earth
-    pne = pe/sqrt(dot(pe,pe));
+    pne = pe/norm(pe);
     ss(i).pne = pne;
     
     mArrow3([0 0 0],pne, ...
         'stemWidth',0.01,'FaceColor',[1 0 0]);
     
-    text(pne(1),pne(2),pne(3),[' ' ss(i).name]);
+    text(pne(1),pne(2),pne(3),ss(i).name, ...
+        'HorizontalAlignment','center');
     hold on
 end
 light
 hold off
 axis equal
 axis off
+axis([-1.2 1.2 -0.8 1.1 -0.2 0.8])
 
 %%
 % These are unit vectors pointing out from the center of the earth towards
@@ -154,13 +154,11 @@ vEarth = ss(5).velocity;
 earthPlaneNormal = cross(vEarth,pSun - pEarth);
 
 % Normalize this vector
-earthPlaneNormalUnit = earthPlaneNormal/sqrt(dot(earthPlaneNormal,earthPlaneNormal));
+earthPlaneNormalUnit = earthPlaneNormal/norm(earthPlaneNormal);
 mArrow3([0 0 0],earthPlaneNormalUnit, ...
     'stemWidth',0.01,'FaceColor',[0 0 0]);
 view(-45,15)
-a = axis;
-axis(a/2)
-set(gca,'Clipping','off')
+axis([-1.2 1.2 -0.8 1.1 -0.2 0.8])
 
 %%
 % Now we project the vectors onto the plane defined by earth's motion
@@ -181,7 +179,7 @@ for i = 1:length(ss)
     
     mArrow3([0 0 0],pneProj, ...
         'stemWidth',0.01,'FaceColor',[0 0 1]);
-    text(pneProj(1),pneProj(2),pneProj(3),[' ' ss(i).name]);
+%     text(pneProj(1),pneProj(2),pneProj(3),ss(i).name);
 end
 hold off
 axis equal
@@ -204,7 +202,7 @@ ss(1).theta = 0;
 
 for i = 1:length(ss)
     pneProj = ss(i).pneProj;
-    cosTheta = dot(sun,pneProj)/(sqrt(dot(sun,sun))*sqrt(dot(pneProj,pneProj)));
+    cosTheta = dot(sun,pneProj)/(norm(sun)*norm(pneProj));
     theta = acos(cosTheta);
     
     % The earth-plane normal vector sticks out of the plane. We can use it
@@ -245,4 +243,4 @@ axis(2*[-1 1 -1 1])
 % high in the sky as the sun sets.
 %
 % And that is a very satisfying answer to my question, by way of vector
-% math, JSON feeds, MATLAB graphics, and the the File Exchange.
+% math, JSON feeds, MATLAB graphics, and the File Exchange.

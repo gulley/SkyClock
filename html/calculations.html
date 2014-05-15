@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Sky Clock calculations</title><meta name="generator" content="MATLAB 8.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-04-16"><meta name="DC.source" content="calculations.m"><style type="text/css">
+      --><title>Sky Clock calculations</title><meta name="generator" content="MATLAB 8.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-05-15"><meta name="DC.source" content="calculations.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Sky Clock calculations</h1><!--introduction--><p>I look up at the sky just after sunset and I see an especially bright star. It's probably a planet. But which one?</p><p>This question gives me a good opportunity to play around with MATLAB. Let's do a visualization that shows where the planets are relative to the earth and the sun. In the process, we'll use JSON services, the File Exchange, MATLAB graphics, and 3-D vector mathematics cribbed from Wikipedia.</p><p><img vspace="5" hspace="5" src="../explanation1.png" alt=""> </p><p>Here is the basic grade-school illustration of the solar system, the one that shows the planets rolling around the sun like peas on a plate. For simplicity, we're just showing the sun, the earth, the moon, Venus, and Mars.</p><p>But we never see anything like this with our own eyes. Instead, we see bright spots on a dark background somewhere "up there." So let's simplify our problem to determining what direction each naked-eye planet is in. This leads to an image like this.</p><p><img vspace="5" hspace="5" src="../explanation3.png" alt=""> </p><p>Our goal is to make an accurate up-to-date version of this diagram. Specifically, relative to the sun, where should we look to find the moon and the naked-eye planets (Mercury, Venus, Mars, Jupiter, and Saturn)? To do this, we need to solve a few problems.</p><div><ol><li>Find the planets</li><li>Find the unit vector pointing from earth to each planet</li><li>Squash all these vectors onto a single plane</li><li>Visualize the resulting disk</li></ol></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Where Are the Planets?</a></li><li><a href="#2">Parse the data</a></li><li><a href="#5">Aerospace Toolbox Ephemeris</a></li><li><a href="#6">Build the Solar System Structure</a></li><li><a href="#7">Plot the planets</a></li><li><a href="#12">Plot the result</a></li></ul></div><h2>Where Are the Planets?<a name="1"></a></h2><p>First of all, where are the planets? There's a free JSON service for just about everything these days. I found planetary data hosted on Davy Wybiral's site here:</p><p><a href="http://davywybiral.blogspot.com/2011/11/planetary-states-api.html">http://davywybiral.blogspot.com/2011/11/planetary-states-api.html</a></p><pre class="codeinput">url = <span class="string">'http://www.astro-phys.com/api/de406/states?bodies=sun,moon,mercury,venus,earth,mars,jupiter,saturn'</span>;
+  </style></head><body><div class="content"><h1>Sky Clock calculations</h1><!--introduction--><p>I look up at the sky just after sunset and I see an especially bright star. It's probably a planet. But which one?</p><p>This question gives me a good opportunity to play around with MATLAB. Let's do a visualization that shows where the planets are relative to the earth and the sun. In the process, we'll use JSON services, the File Exchange, MATLAB graphics, and 3-D vector mathematics cribbed from Wikipedia.</p><p><img vspace="5" hspace="5" src="explanation1.png" alt=""> </p><p>Here is the basic grade-school illustration of the solar system, the one that shows the planets rolling around the sun like peas on a plate. For simplicity, we're just showing the sun, the earth, the moon, Venus, and Mars.</p><p>But we never see anything like this with our own eyes. Instead, we see bright spots on a dark background somewhere "up there." So let's simplify our problem to determining what direction each naked-eye planet is in. This leads to an image like this.</p><p><img vspace="5" hspace="5" src="explanation3.png" alt=""> </p><p>Our goal is to make an accurate up-to-date version of this diagram. Specifically, relative to the sun, where should we look to find the moon and the naked-eye planets (Mercury, Venus, Mars, Jupiter, and Saturn)? To do this, we need to solve a few problems.</p><div><ol><li>Find the planets</li><li>Find the unit vector pointing from earth to each planet</li><li>Squash all these vectors onto a single plane</li><li>Visualize the resulting disk</li></ol></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Where Are the Planets?</a></li><li><a href="#2">Parse the data</a></li><li><a href="#5">Aerospace Toolbox Ephemeris</a></li><li><a href="#6">Build the Solar System Structure</a></li><li><a href="#7">Plot the planets</a></li><li><a href="#12">Plot the result</a></li></ul></div><h2>Where Are the Planets?<a name="1"></a></h2><p>First of all, where are the planets? There's a free JSON service for just about everything these days. I found planetary data hosted on Davy Wybiral's site here:</p><p><a href="http://davywybiral.blogspot.com/2011/11/planetary-states-api.html">http://davywybiral.blogspot.com/2011/11/planetary-states-api.html</a></p><pre class="codeinput">url = <span class="string">'http://www.astro-phys.com/api/de406/states?bodies=sun,moon,mercury,venus,earth,mars,jupiter,saturn'</span>;
 json = urlread(url);
 </pre><h2>Parse the data<a name="2"></a></h2><p>Now we can use <a href="http://www.mathworks.com/matlabcentral/fileexchange/42236-parse-json-text">Joe Hicklin's JSON parser</a> from the File Exchange. It returns a well-bahaved MATLAB structure.</p><pre class="codeinput">data = JSON.parse(json)
 </pre><pre class="codeoutput">
@@ -80,14 +80,14 @@ data =
 </pre><pre class="codeoutput">
 ans = 
 
-    mercury: [1x6 double]
-        sun: [2.3929e+05 -2.6435e+05 -1.3210e+05 818.1578 465.4666 180.9560]
-       moon: [1x6 double]
-    jupiter: [1x6 double]
-       mars: [1x6 double]
-      earth: [1x6 double]
-      venus: [1x6 double]
-     saturn: [1x6 double]
+    mercury: {{1x3 cell}  {1x3 cell}}
+        sun: {{1x3 cell}  {1x3 cell}}
+       moon: {{1x3 cell}  {1x3 cell}}
+    jupiter: {{1x3 cell}  {1x3 cell}}
+       mars: {{1x3 cell}  {1x3 cell}}
+      earth: {{1x3 cell}  {1x3 cell}}
+      venus: {{1x3 cell}  {1x3 cell}}
+     saturn: {{1x3 cell}  {1x3 cell}}
 
 </pre><p>The distances are in kilometers, and I'm not even sure how this representation is oriented relative to the surrounding galaxy. But it doesn't really matter, because all I care about is the relative positions of the bodies in question.</p><h2>Aerospace Toolbox Ephemeris<a name="5"></a></h2><p>Side note: We could also have used the Aerospace Toolbox to get the same information.</p><p><tt>[pos,vel] = planetEphemeris(juliandate(now),'Sun','Earth')</tt></p><h2>Build the Solar System Structure<a name="6"></a></h2><pre class="codeinput"><span class="comment">% List of bodies we care about</span>
 ssList = {<span class="string">'sun'</span>,<span class="string">'moon'</span>,<span class="string">'mercury'</span>,<span class="string">'venus'</span>,<span class="string">'earth'</span>,<span class="string">'mars'</span>,<span class="string">'jupiter'</span>,<span class="string">'saturn'</span>};
@@ -96,28 +96,29 @@ ss = [];
 <span class="keyword">for</span> i = 1:length(ssList)
     ssObjectName = ssList{i};
     ss(i).name = ssObjectName;
-    ssVec = data.results.(ssObjectName);
-    ss(i).position = ssVec(1:3);
-    ss(i).velocity = ssVec(4:6);
+    ssData = data.results.(ssObjectName);
+    ss(i).position = [ssData{1}{:}];
+    ss(i).velocity = [ssData{2}{:}];
 <span class="keyword">end</span>
 </pre><h2>Plot the planets<a name="7"></a></h2><pre class="codeinput"><span class="comment">% Plot in astronomical units</span>
 au = 149597871;
 [x,y,z] = sphere;
 k = 5;
 
-cla
+clf
 <span class="keyword">for</span> i = 1:length(ss)
     p = ss(i).position/au;
 
-    surf(x/k+p(1),y/k+p(2),z/k+p(3))
+    line(p(1),p(2),p(3), <span class="keyword">...</span>
+        <span class="string">'Marker'</span>,<span class="string">'.'</span>,<span class="string">'MarkerSize'</span>,24)
 
     text(p(1),p(2),p(3),[<span class="string">'   '</span> ss(i).name]);
-    hold <span class="string">on</span>
 <span class="keyword">end</span>
 
-hold <span class="string">off</span>
-axis <span class="string">equal</span>
+view(3)
+grid <span class="string">on</span>
 shading <span class="string">flat</span>
+axis <span class="string">equal</span>
 light
 </pre><img vspace="5" hspace="5" src="calculations_01.png" alt=""> <p>This is accurate, but not yet very helpful. Let's now calculate the geocentric position vectors of each planet. To do this, we'll put the earth at the center of the system. Copernicus won't mind, because A) he's dead, and B) we admit this reference frame orbits the sun.</p><p>We're also going to use another file from the File Exchange. Georg Stillfried's <a href="http://www.mathworks.com/matlabcentral/fileexchange/25372">mArrow3</a> will help us make nice 3-D arrows in space.</p><pre class="codeinput">clf
 pEarth = ss(5).position;
@@ -126,33 +127,33 @@ pEarth = ss(5).position;
     <span class="comment">% (i.e. a vector pointing from earth to body X)</span>
     pe = ss(i).position - pEarth;
     <span class="comment">% pne = normalized position relative to earth</span>
-    pne = pe/sqrt(dot(pe,pe));
+    pne = pe/norm(pe);
     ss(i).pne = pne;
 
     mArrow3([0 0 0],pne, <span class="keyword">...</span>
         <span class="string">'stemWidth'</span>,0.01,<span class="string">'FaceColor'</span>,[1 0 0]);
 
-    text(pne(1),pne(2),pne(3),[<span class="string">' '</span> ss(i).name]);
+    text(pne(1),pne(2),pne(3),ss(i).name, <span class="keyword">...</span>
+        <span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>);
     hold <span class="string">on</span>
 <span class="keyword">end</span>
 light
 hold <span class="string">off</span>
 axis <span class="string">equal</span>
 axis <span class="string">off</span>
-</pre><img vspace="5" hspace="5" src="calculations_02.png" alt=""> <p>These are unit vectors pointing out from the center of the earth towards each of the other objects. It's a little hard to see, but these vectors are all lying in approximately the same plane.</p><p>If we change our view point to look at the system edge-on, we can see the objects are not quite co-planar. For simplicity, let's squash them all into the same plane. For this, we'll use the plane defined by the earth's position relative to the sun crossed with its velocity vector. This defines "north" for the solar system.</p><pre class="codeinput">pEarth = ss(5).position;
+axis([-1.2 1.2 -0.8 1.1 -0.2 0.8])
+</pre><img vspace="5" hspace="5" src="calculations_02.png" alt=""> <p>These are unit vectors pointing out from the center of the earth towards each of the other objects. It's a little hard to see, but these vectors are all lying in approximately the same plane.</p><p>If we change our view point to look at the system edge-on, we can see the objects are not quite co-planar. For simplicity, let's squash them all into the same plane. For this, we'll use the plane defined by the earth's velocity vector crossed with its position relative to the sun. This defines "north" for the solar system.</p><pre class="codeinput">pEarth = ss(5).position;
 pSun = ss(1).position;
 vEarth = ss(5).velocity;
 
 earthPlaneNormal = cross(vEarth,pSun - pEarth);
 
 <span class="comment">% Normalize this vector</span>
-earthPlaneNormalUnit = earthPlaneNormal/sqrt(dot(earthPlaneNormal,earthPlaneNormal));
+earthPlaneNormalUnit = earthPlaneNormal/norm(earthPlaneNormal);
 mArrow3([0 0 0],earthPlaneNormalUnit, <span class="keyword">...</span>
     <span class="string">'stemWidth'</span>,0.01,<span class="string">'FaceColor'</span>,[0 0 0]);
 view(-45,15)
-a = axis;
-axis(a/2)
-set(gca,<span class="string">'Clipping'</span>,<span class="string">'off'</span>)
+axis([-1.2 1.2 -0.8 1.1 -0.2 0.8])
 </pre><img vspace="5" hspace="5" src="calculations_03.png" alt=""> <p>Now we project the vectors onto the plane defined by earth's motion around the sun. I learned what I needed from Wikipedia here: <a href="http://en.wikipedia.org/wiki/Vector_projection">Vector Projection</a>.</p><p>Since we are working with the normal, we are technically doing a <a href="http://en.wikipedia.org/wiki/Vector_projection#Vector_rejection_2">vector rejection</a>. Using Wikipedia's notation, this is given by</p><p><img src="calculations_eq07762868630210860277.png" alt="$$ \mathbf{a_2} = \mathbf{a} - \frac{\mathbf{a} \cdot \mathbf{b}}{\mathbf{b} \cdot \mathbf{b}} \mathbf{b} $$"></p><pre class="codeinput">hold <span class="string">on</span>
 <span class="keyword">for</span> i = 1:length(ss)
     pne = ss(i).pne;
@@ -161,7 +162,7 @@ set(gca,<span class="string">'Clipping'</span>,<span class="string">'off'</span>
 
     mArrow3([0 0 0],pneProj, <span class="keyword">...</span>
         <span class="string">'stemWidth'</span>,0.01,<span class="string">'FaceColor'</span>,[0 0 1]);
-    text(pneProj(1),pneProj(2),pneProj(3),[<span class="string">' '</span> ss(i).name]);
+<span class="comment">%     text(pneProj(1),pneProj(2),pneProj(3),ss(i).name);</span>
 <span class="keyword">end</span>
 hold <span class="string">off</span>
 axis <span class="string">equal</span>
@@ -170,7 +171,7 @@ ss(1).theta = 0;
 
 <span class="keyword">for</span> i = 1:length(ss)
     pneProj = ss(i).pneProj;
-    cosTheta = dot(sun,pneProj)/(sqrt(dot(sun,sun))*sqrt(dot(pneProj,pneProj)));
+    cosTheta = dot(sun,pneProj)/(norm(sun)*norm(pneProj));
     theta = acos(cosTheta);
 
     <span class="comment">% The earth-plane normal vector sticks out of the plane. We can use it</span>
@@ -213,7 +214,7 @@ axis(2*[-1 1 -1 1])
 % Exchange, MATLAB graphics, and 3-D vector mathematics cribbed from
 % Wikipedia.
 %
-% <<../explanation1.png>>
+% <<explanation1.png>>
 %
 % Here is the basic grade-school illustration of the solar system, the one
 % that shows the planets rolling around the sun like peas on a plate. For
@@ -225,7 +226,7 @@ axis(2*[-1 1 -1 1])
 % our problem to determining what direction each naked-eye planet is in.
 % This leads to an image like this.
 %
-% <<../explanation3.png>>
+% <<explanation3.png>>
 %
 % Our goal is to make an accurate up-to-date version of this diagram.
 % Specifically, relative to the sun, where should we look to find the moon
@@ -282,9 +283,9 @@ ss = [];
 for i = 1:length(ssList)
     ssObjectName = ssList{i};
     ss(i).name = ssObjectName;
-    ssVec = data.results.(ssObjectName);
-    ss(i).position = ssVec(1:3);
-    ss(i).velocity = ssVec(4:6);
+    ssData = data.results.(ssObjectName);
+    ss(i).position = [ssData{1}{:}];
+    ss(i).velocity = [ssData{2}{:}];
 end
 
 %% Plot the planets
@@ -293,20 +294,21 @@ end
 au = 149597871;
 [x,y,z] = sphere;
 k = 5;
-
-cla
+ 
+clf
 for i = 1:length(ss)
     p = ss(i).position/au;
-    
-    surf(x/k+p(1),y/k+p(2),z/k+p(3))
-    
-    text(p(1),p(2),p(3),['   ' ss(i).name]);
-    hold on
-end
 
-hold off
-axis equal
+    line(p(1),p(2),p(3), ...
+        'Marker','.','MarkerSize',24)
+ 
+    text(p(1),p(2),p(3),['   ' ss(i).name]);
+end
+ 
+view(3)
+grid on
 shading flat
+axis equal
 light
 
 %%
@@ -326,19 +328,21 @@ for i = 1:length(ss)
     % (i.e. a vector pointing from earth to body X)
     pe = ss(i).position - pEarth;
     % pne = normalized position relative to earth
-    pne = pe/sqrt(dot(pe,pe));
+    pne = pe/norm(pe);
     ss(i).pne = pne;
     
     mArrow3([0 0 0],pne, ...
         'stemWidth',0.01,'FaceColor',[1 0 0]);
     
-    text(pne(1),pne(2),pne(3),[' ' ss(i).name]);
+    text(pne(1),pne(2),pne(3),ss(i).name, ...
+        'HorizontalAlignment','center');
     hold on
 end
 light
 hold off
 axis equal
 axis off
+axis([-1.2 1.2 -0.8 1.1 -0.2 0.8])
 
 %%
 % These are unit vectors pointing out from the center of the earth towards
@@ -348,8 +352,8 @@ axis off
 % If we change our view point to look at the system edge-on, we can see the
 % objects are not quite co-planar. For simplicity, let's squash them all
 % into the same plane. For this, we'll use the plane defined by the earth's
-% position relative to the sun crossed with its velocity vector. This
-% defines "north" for the solar system.
+% velocity vector crossed with its position relative to the sun. This defines
+% "north" for the solar system.
 
 pEarth = ss(5).position;
 pSun = ss(1).position;
@@ -358,13 +362,11 @@ vEarth = ss(5).velocity;
 earthPlaneNormal = cross(vEarth,pSun - pEarth);
 
 % Normalize this vector
-earthPlaneNormalUnit = earthPlaneNormal/sqrt(dot(earthPlaneNormal,earthPlaneNormal));
+earthPlaneNormalUnit = earthPlaneNormal/norm(earthPlaneNormal);
 mArrow3([0 0 0],earthPlaneNormalUnit, ...
     'stemWidth',0.01,'FaceColor',[0 0 0]);
 view(-45,15)
-a = axis;
-axis(a/2)
-set(gca,'Clipping','off')
+axis([-1.2 1.2 -0.8 1.1 -0.2 0.8])
 
 %%
 % Now we project the vectors onto the plane defined by earth's motion
@@ -385,7 +387,7 @@ for i = 1:length(ss)
     
     mArrow3([0 0 0],pneProj, ...
         'stemWidth',0.01,'FaceColor',[0 0 1]);
-    text(pneProj(1),pneProj(2),pneProj(3),[' ' ss(i).name]);
+%     text(pneProj(1),pneProj(2),pneProj(3),ss(i).name);
 end
 hold off
 axis equal
@@ -408,7 +410,7 @@ ss(1).theta = 0;
 
 for i = 1:length(ss)
     pneProj = ss(i).pneProj;
-    cosTheta = dot(sun,pneProj)/(sqrt(dot(sun,sun))*sqrt(dot(pneProj,pneProj)));
+    cosTheta = dot(sun,pneProj)/(norm(sun)*norm(pneProj));
     theta = acos(cosTheta);
     
     % The earth-plane normal vector sticks out of the plane. We can use it
